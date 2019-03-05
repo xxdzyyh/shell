@@ -76,9 +76,9 @@ createVCFiles() {
 	# 创建.m
 	echo "${authorInfo}
 #import \"$viewController.h\"
+#import \"$1.h\"
 
 @interface ${viewController}()
-
 
 @end
 
@@ -109,10 +109,10 @@ createVCFiles() {
         
 //		RequestResult *res = [RequestResult yy_modelWithJSON:result];
 //        
-//        if (res.code == 200) {
+//        if (res.success) {
 //			
 //        } else {
-//        	Toast(res.msg);
+//        	XFToast(res.msg);
 //        }
     }];
     
@@ -184,7 +184,10 @@ createCellFiles() {
 
 @implementation ${cell}
 
-#pragma mark - Initialize Methods
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    
+}
 
 #pragma mark - Public Methods
 
@@ -225,7 +228,6 @@ echo $2
 #   simple 没有下拉刷新和加载更多
 
 refresh=""
-
 if [[ $2 == "simple" ]]; then
 	refresh="
 	self.canUpdateData = NO;
@@ -234,7 +236,7 @@ if [[ $2 == "simple" ]]; then
 elif [[ $2 == 'refresh' ]]; then
 	refresh="self.canAppendData = NO;"
 else
-	refresh=""
+	refresh=""	
 fi
 
 	authorInfo=`authorInfoFunc ${list}.m`
@@ -242,12 +244,18 @@ fi
 #import \"${list}.h\"
 
 #import \"$1.h\"
+#import \"$1Cell.h\"
 #import \"RequestResult.h\"
+#import \"$1DetailVC.h\"
 #import <YYModel/YYModel.h>
 #import <SVProgressHUD/SVProgressHUD.h>
 
-@interface ${list} ()
+//typedef NS_ENUM(NSUInteger,$1CellType) {
+//    $1CellTypeOne,
+//    $1CellCount
+//};
 
+@interface ${list} ()
 
 @end
 
@@ -262,20 +270,32 @@ fi
     [self sendDefaultRequest];
 }
 
+#pragma mark - Request
+
 - (NSString *)defaultPath {
 	return @\"\";
 }
 
 - (void)sendDefaultRequest {
-	[SVProgressHUD show];
     XFRequest *request = [[XFRequest alloc] initWithPath:[self defaultPath] finish:^(XFRequest *request, id result) {
-        
-        [self.refreshHeader endRefreshing];
+        if (self.page == [self startPage]) {
+            [self.refreshHeader endRefreshing];
+        } else {
+            [self.refreshFooter endRefreshing];
+        }
 		
 		RequestResult *res = [RequestResult yy_modelWithJSON:result];
         
         if (res.code == 200) {
-			self.dataSource = [[NSArray yy_modelArrayWithClass:[BuyFollowsModel class] json:res.data] mutableCopy];
+            NSArray *array = [NSArray yy_modelArrayWithClass:[self modelClass] json:res.data];
+            
+            if (self.page == [self startPage]) {
+                self.dataSource = [array mutableCopy];
+            } else {
+                [self.dataSource addObjectsFromArray:array];
+            }
+        } else {
+        	Toast(res.msg);
         }
     }];
     
@@ -284,18 +304,117 @@ fi
 
 #pragma mark - <XFCellDelegate>
 
+- (Class)modelClass {
+	return [$1 class];
+}
+
 - (Class)cellClass {
     return [$1Cell class];
 }
 
-- (Class)cellClassForIndexPath:(NSIndexPath *)indexPath {
-	return [$1Cell class];
+//- (Class)cellClassForIndexPath:(NSIndexPath *)indexPath {
+//  	return [$1Cell class];
+//}
+
+
+#pragma mark - <UITableViewDelegate>
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    
+    id obj = self.dataSource[indexPath.row];
+//    
+//    UIViewController *vc = [$1DetailVC new];
+//    [self.navigationController pushViewController:vc animated:YES];
 }
+
+@end
 
 " >> ${list}.m
 
 }
 
+createDetailVC() {
+		# 创建.h
+	viewController=$1DetailVC
+	authorInfo=`authorInfoFunc ${viewController}.h`
+
+	echo "${authorInfo}
+#import <XFFoundation/XFFoundation.h>
+
+@class $1;
+
+@interface $viewController : XFViewController
+
+- (instancetype)initWithModel:($1 *)model;
+
+@end
+
+" >> $viewController.h
+
+	authorInfo=`authorInfoFunc ${viewController}.m`
+	# 创建.m
+	echo "${authorInfo}
+#import \"$viewController.h\"
+#import \"$1.h\"
+
+@interface ${viewController}()
+
+@property (strong, nonatomic) $1 *model;
+
+@end
+
+@implementation ${viewController}
+
+#pragma mark - Initialize Methods
+
+- (instancetype)initWithModel:($1 *)model {
+	self = [super init];
+	if (self) {
+		_model = model;
+	}
+	return self;
+}
+
+#pragma mark - Life Cycle
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+
+    [self sendDefaultRequest];
+}
+
+#pragma mark - Super Methods
+
+
+#pragma mark - Private Methods
+
+- (NSString *)defaultPath {
+	return @\"\";
+}
+
+- (void)sendDefaultRequest {
+    XFRequest *request = [[XFRequest alloc] initWithPath:[self defaultPath] finish:^(XFRequest *request, id result) {
+        
+//		RequestResult *res = [RequestResult yy_modelWithJSON:result];
+//        
+//        if (res.success) {
+//			
+//        } else {
+//        	XFToast(res.msg);
+//        }
+    }];
+    
+    [self.mainQueue push:request];
+}
+
+
+#pragma mark - Property
+
+@end
+
+" >> ${viewController}.m
+}
 
 if [[ -n $1 ]]; then
 echo $1
@@ -314,6 +433,8 @@ cd $1
 			createModelFiles $1
 		elif [[ $2 = "table" ]]; then
 			createTable $1 $3
+		elif [[ $2 = "detail" ]]; then
+			createDetailVC $1
 		fi
 
 	else	
@@ -321,6 +442,7 @@ cd $1
 		createVCFiles $1
 		createCellFiles $1
 		createTable $1 $3
+		createDetailVC $1
 	fi
 
 path=`pwd`
