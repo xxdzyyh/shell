@@ -223,6 +223,7 @@ NS_ASSUME_NONNULL_END
 	authorInfo=`authorInfoFunc ${cell}.m`
 	echo "${authorInfo}
 #import \"${cell}.h\"
+#import \"$1CellVM.h\"
 
 @interface ${cell}()
 
@@ -254,8 +255,15 @@ NS_ASSUME_NONNULL_END
 #pragma mark - Public Methods
 
 - (void)setContentWithCellVM:(id)cellViewModel {
+	$1CellVM *vm = cellViewModel;
 
 }
+
++ (CGFloat)cellHeight {
+    return scaleY(44);
+}
+
+#pragma mark - Property
 
 @end
 
@@ -342,7 +350,7 @@ NS_ASSUME_NONNULL_END
 #pragma mark - Public Methods
 
 
-#pragma mark - Getter
+#pragma mark - Property
 
 
 @end
@@ -372,7 +380,7 @@ cd $1
 			createViewModelFiles $1
 		elif [[ $2 = "model" ]]; then
 			createEntityFiles $1
-		elif [[ $2 = "model" ]]; then
+		elif [[ $2 = "view" ]]; then
 			createViewFiles $1
 		fi
 
