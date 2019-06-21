@@ -1,0 +1,2 @@
+/* 省钱 */
+@property (nonatomic, strong) NSString *saveMoney;

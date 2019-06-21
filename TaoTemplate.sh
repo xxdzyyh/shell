@@ -127,6 +127,35 @@ createVCFiles() {
 " >> ${viewController}.m
 }
 
+createCellXib() {
+	file=$1
+
+cat >> ${file}.xib <<EOF
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="13142" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <dependencies>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="12042"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" id="KGk-i7-Jjw" customClass="$1">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+            <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="KGk-i7-Jjw" id="H2p-sc-9uM">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="43"/>
+                <autoresizingMask key="autoresizingMask"/>
+            </tableViewCellContentView>
+            <viewLayoutGuide key="safeArea" id="aW0-zy-SZf"/>
+        </tableViewCell>
+    </objects>
+</document>
+
+EOF
+
+}
 
 createCellFiles() {
 
@@ -155,27 +184,7 @@ createCellFiles() {
 
 @implementation ${cell}
 
-#pragma mark - Initialize Methods
 
-- (instancetype)initWithCellIdentifier:(NSString *)cellId {
-	self = [super initWithCellIdentifier:cellId];
-    if (self) {
-        [self setupSubviews];
-        [self setupConstraint];
-    }
-    return self;
-}
-
-
-#pragma mark - Private Methods
-
-- (void)setupSubviews {
-
-}
-
-- (void)setupConstraint {
-
-}
 
 #pragma mark - Public Methods
 
@@ -184,13 +193,8 @@ createCellFiles() {
 
     $1 *data = item;
 
-}
 
-+ (CGFloat)cellHeight {
-    return scaleY(44);
 }
-
-#pragma mark - Property
 
 @end
 
@@ -279,7 +283,7 @@ fi
 		
 		RequestResult *res = [RequestResult yy_modelWithJSON:result];
         
-        if (res.code == 200) {
+        if (res.isSuccess) {
             NSArray *array = [NSArray yy_modelArrayWithClass:[self modelClass] json:res.data];
             
             if (self.page == [self startPage]) {
@@ -320,9 +324,6 @@ fi
 //    UIViewController *vc = [$1DetailVC new];
 //    [self.navigationController pushViewController:vc animated:YES];
 }
-
-#pragma mark - Property
-
 
 @end
 
@@ -376,10 +377,6 @@ createDetailVC() {
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
-    [self setupSubviews];
-    [self setupConstraint];
-    [self setupEvent];
 
     [self sendDefaultRequest];
 }
@@ -408,19 +405,6 @@ createDetailVC() {
     [self.mainQueue push:request];
 }
 
-#pragma mark - Private Methods
-
-- (void)setupSubviews {
-
-}
-
-- (void)setupConstraint {
-
-}
-
-- (void)setupEvent {
-
-}
 
 #pragma mark - Property
 

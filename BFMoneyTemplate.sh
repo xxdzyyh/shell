@@ -161,7 +161,7 @@ NS_ASSUME_NONNULL_END
     [self setupSubviews];
     [self setupConstraint];
     [self setupEvent];
-    [self showBackgroundLoadingView];
+    [self showHudLoading];
     [self sendRequest];
 }
 
