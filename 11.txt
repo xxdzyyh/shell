@@ -1,2 +1,4 @@
-123456
-qwerty
+// 已售x件的背景
+@property (nonatomic, strong) UIView *countBgView;
+// 已售x件的背景左侧渐变色
+@property (nonatomic, strong) UIView *countBgLeftView;
