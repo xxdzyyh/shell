@@ -1,0 +1,26 @@
+- (void)setupSubviews {
+    [self addSubview:self.];
+[self addSubview:self.countBgView];
+[self addSubview:self.];
+[self addSubview:self.countBgLeftView];
+
+}
+- (void)setupContraints {
+    [self. mas_makeConstraints:^(MASConstraintMaker *make) {
+		
+		}];
+
+[self.countBgView mas_makeConstraints:^(MASConstraintMaker *make) {
+		
+		}];
+
+[self. mas_makeConstraints:^(MASConstraintMaker *make) {
+		
+		}];
+
+[self.countBgLeftView mas_makeConstraints:^(MASConstraintMaker *make) {
+		
+		}];
+
+
+}
