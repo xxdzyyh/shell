@@ -1,14 +1,4 @@
-- (UIView *)countBgView 
-{ if (!_countBgView) { _countBgView = [[UIView alloc] init]; } return _countBgView; } - (UIView *)countBgLeftView{ if (!_countBgLeftView) { _countBgLeftView = [[UIView alloc] init]; } return _countBgLeftView; }
-[self.countBgView mas_makeConstraints:^(MASConstraintMaker *make) { }]; [self.countBgLeftView mas_makeConstraints:^(MASConstraintMaker *make) { }];
-[self addSubview:self.countBgView]; [self addSubview:self.countBgLeftView];
-
-- (UIView *)countBgView{ if (!_countBgView) { _countBgView = [[UIView alloc] init]; } return _countBgView; } - (UIView *)countBgLeftView{ if (!_countBgLeftView) { _countBgLeftView = [[UIView alloc] init]; } return _countBgLeftView; }
-[self.countBgView mas_makeConstraints:^(MASConstraintMaker *make) { }]; [self.countBgLeftView mas_makeConstraints:^(MASConstraintMaker *make) { }];
-[self addSubview:self.countBgView]; [self addSubview:self.countBgLeftView];
-- (UIView *)countBgView{ if (!_countBgView) { _countBgView = [[UIView alloc] init]; } return _countBgView; } - (UIView *)countBgLeftView{ if (!_countBgLeftView) { _countBgLeftView = [[UIView alloc] init]; } return _countBgLeftView; }
-[self.countBgView mas_makeConstraints:^(MASConstraintMaker *make) { }]; [self.countBgLeftView mas_makeConstraints:^(MASConstraintMaker *make) { }];
-[self addSubview:self.countBgView]; [self addSubview:self.countBgLeftView];
-- (UIView *)countBgView{ if (!_countBgView) { _countBgView = [[UIView alloc] init]; } return _countBgView; } - (UIView *)countBgLeftView{ if (!_countBgLeftView) { _countBgLeftView = [[UIView alloc] init]; } return _countBgLeftView; }
-[self.countBgView mas_makeConstraints:^(MASConstraintMaker *make) { }]; [self.countBgLeftView mas_makeConstraints:^(MASConstraintMaker *make) { }];
-[self addSubview:self.countBgView]; [self addSubview:self.countBgLeftView];
+bgView
+headImageView
+bgButton
+codeTextField

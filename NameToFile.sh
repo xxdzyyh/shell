@@ -1,13 +1,28 @@
-path=$1
+#!/bin/bash
 
-awk 'BEGIN {
+array=$(awk '{
+	if ($1~/Label/) {
+		print "@property (nonatomic, strong) UILabel *"$1";";
+	} else if ($1~/Button/) {
+		print "@property (nonatomic, strong) UIButton *"$1";";
+	} else if ($1~/TextField/) {
+		print "@property (nonatomic, strong) UITextField *"$1";";
+	} else if ($1~/ImageView/) {
+		print "@property (nonatomic, strong) UIImageView *"$1";";
+	} else {
+		print "@property (nonatomic, strong) UIView *"$1";";
+	}
+}' $1)
+
+echo $array | sed 's/;/;\n/g;' | awk 'BEGIN {
+	declear="";
 	getter="";
 	constraints="";
 	subviews="";
-	hasSubviewFn=0;
-	hasConstraintsFn=0;
 } {
 	if ($0~/@property/) {
+		declear=declear$0"\n"
+
 		propertyname=substr($5,2,length($5)-2);
 		property="_"propertyname;
 		
@@ -49,29 +64,15 @@ awk 'BEGIN {
 			\
 			}];\n\n";
 		} 
-	} else {
-		if ($0~/setupSubviews/) {
-			hasSubviewFn=1;
-		}
-
-		if ($0~/setupContraints/) {
-			hasConstraintsFn=1;
-		}
 	}
 } END {
-	
-	if (hasSubviewFn) {
-		print subviews >> "'$path'";
-	} else {
-		print "- (void)setupSubviews {\n	"subviews"\n}"  >> "'$path'";
-	}
+	print declear;
+    print "- (void)setupSubviews {\n	"subviews"\n}";
+    print "- (void)setupContraints {\n    "constraints"\n}";
+	print getter;
+}' 
 
-	if (hasConstraintsFn) {
-		print constraints >> "'$path'";
-	} else {
-		print "- (void)setupContraints {\n    "constraints"\n}"  >> "'$path'";
-	}
 
-	print getter >> "'$path'";
 
-}' $1
+
+
