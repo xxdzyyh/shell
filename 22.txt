@@ -1,12 +1,7 @@
 {
-  "id": 5,
-  "keyindex": "横幅",
-  "title": "母婴好货",
-  "thumb": "https://c2.gogoh5.com/gsf/jpg/20170927/09bae103a6c14c6695ebc1bd92ce4d18.52415.1506504621421.jpg",
-  "type": "LIST",
-  "goto": "http://api.91nayouhui.com/v1/goods/?keyword=%E6%AF%8D%E5%A9%B4|%E5%84%BF%E7%AB%A5|%E5%AE%9D%E5%AE%9D",
-  "size": "",
-  "edittime": 1558928327,
-  "fetchurl": "",
-  "status": 1
+  "title": "今日",
+  "selfOrderNum": 0,
+  "selfCommission": 0,
+  "agentOrderNum": 0,
+  "agentCommission": 0
 }

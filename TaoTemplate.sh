@@ -63,7 +63,8 @@ createVCFiles() {
 	authorInfo=`authorInfoFunc ${viewController}.h`
 
 	echo "${authorInfo}
-#import <XFFoundation/XFFoundation.h>
+
+#import \"XFFoundation.h\"
 
 @interface $viewController : XFViewController
 
@@ -133,7 +134,7 @@ createCellFiles() {
 	authorInfo=`authorInfoFunc ${cell}.h`
 
 	echo "${authorInfo}
-#import <XFFoundation/XFFoundation.h>
+#import \"XFFoundation.h\"
 
 @interface $cell : XFTableViewCell
 
@@ -154,7 +155,24 @@ createCellFiles() {
 
 @implementation ${cell}
 
+- (instancetype)initWithCellIdentifier:(NSString *)cellId {
+    self = [super initWithCellIdentifier:cellId];
+    if (self) {
+        [self setupSubviews];
+        [self setupConstraint];
+    }
+    return self;
+}
 
+#pragma mark - Private Methods
+
+- (void)setupSubviews {
+
+}
+
+- (void)setupConstraint {
+
+}
 
 #pragma mark - Public Methods
 
@@ -164,6 +182,10 @@ createCellFiles() {
     $1 *data = item;
 
 
+}
+
++ (CGFloat)cellHeight {
+    return scaleY(44);
 }
 
 @end
@@ -182,7 +204,8 @@ echo $2
 	authorInfo=`authorInfoFunc ${list}.h`
 
 	echo "${authorInfo}
-#import <XFFoundation/XFFoundation.h>
+
+#import \"XFFoundation.h\"
 
 @interface $list : XFRefreshTableViewController
 
@@ -307,7 +330,8 @@ createDetailVC() {
 	authorInfo=`authorInfoFunc ${viewController}.h`
 
 	echo "${authorInfo}
-#import <XFFoundation/XFFoundation.h>
+
+#import \"XFFoundation.h\"
 
 @class $1;
 
@@ -396,6 +420,7 @@ cd $1
 			createVCFiles $1
 		elif [[ $2 = "cell" ]]; then
 			createCellFiles $1
+			createModelFiles $1
 		elif [[ $2 = "model" ]]; then
 			createModelFiles $1
 		elif [[ $2 = "table" ]]; then
