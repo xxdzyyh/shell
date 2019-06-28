@@ -1,0 +1,13 @@
+{
+    city = Shenzhen;
+    country = CN;
+    headimgurl = "http://thirdwx.qlogo.cn/mmopen/vi_32/QsvPwY9NQMqtwhJLGvfEEk4NkyRHicLPGOc0JkGsROZ3hNdPHuzpia1bCT5ZuyqM2Fna84VXj4Ovm6AIyDq62OrA/132";
+    language = "zh_CN";
+    nickname = "\U98ce";
+    openid = "o_261tz4UBmgRLim4C1lAqPFAQ_Q";
+    privilege =     (
+    );
+    province = Guangdong;
+    sex = 1;
+    unionid = oU8U0s0EZxPr9g6ay93sfZO6MT4g;
+}
