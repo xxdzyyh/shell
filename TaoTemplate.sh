@@ -147,7 +147,6 @@ createCellFiles() {
 	
 	echo "${authorInfo}
 #import \"${cell}.h\"
-#import \"$1.h\"
 
 @interface ${cell}()
 
@@ -179,9 +178,6 @@ createCellFiles() {
 - (void)configCellWithData:(id)item {
     [super configCellWithData:item];
 
-    $1 *data = item;
-
-
 }
 
 + (CGFloat)cellHeight {
@@ -192,7 +188,6 @@ createCellFiles() {
 
 " >> ${cell}.m
 
-createCellXib $cell
 }
 
 createTable() {
@@ -408,11 +403,6 @@ createDetailVC() {
 }
 
 if [[ -n $1 ]]; then
-echo $1
-#创建一个目录
-
-mkdir $1
-cd $1
 
 	if [[ -n $2 ]]; then
 	
@@ -420,7 +410,6 @@ cd $1
 			createVCFiles $1
 		elif [[ $2 = "cell" ]]; then
 			createCellFiles $1
-			createModelFiles $1
 		elif [[ $2 = "model" ]]; then
 			createModelFiles $1
 		elif [[ $2 = "table" ]]; then
@@ -436,16 +425,6 @@ cd $1
 		createTable $1 $3
 		createDetailVC $1
 	fi
-
-path=`pwd`
-
-osascript <<EOF
-set a to  POSIX file "$path"
-tell application "Finder"
-	open folder a
-end tell
-EOF
-
 else
 
 	echo "please input model name"
