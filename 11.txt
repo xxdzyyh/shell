@@ -1,7 +1,9 @@
-typedef NS_ENUM(NSUInteger,MyCellType) {
-    MyCellTypeBalance,
-    MyCellTypeFAQ,
-    MyCellTypeToday,
-    MyCellTypeTotal,
-    MyCellCount
-};
+@property (nonatomic, copy) NSString *goodsTitle;
+
+@property (nonatomic, copy) NSString *payAmount;
+
+@property (nonatomic, strong) NSNumber *tcValue;
+
+@property (nonatomic, strong) NSNumber *status;
+
+@property (nonatomic, copy) NSString *nickname;

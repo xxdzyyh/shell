@@ -23,6 +23,18 @@ grep -B 1 @property $1 | awk 'BEGIN {
 		constraints=constraints note"\n[self."viewName" mas_makeConstraints:^(MASConstraintMaker *make) {\
 		\
 		}];\n\n";
+	} else if ($4~/NSNumber/) {
+		viewName=propertyname"Label";
+
+		declear=declear note"\n@property (nonatomic, strong) UILabel *"viewName";\n";
+		getter=getter"- (UILabel *)"viewName" {\n	if (!_"viewName") {\n		_"viewName" = [[UILabel alloc] init];\n	}\n	return _"viewName";\n}\n\n";
+		subviews=subviews"[self addSubview:self."viewName"];\n";
+		assign=assign"self."viewName".text = [NSString stringWithFormat:@\"%@\",data."propertyname"];\n";
+		constraints=constraints note"\n[self."viewName" mas_makeConstraints:^(MASConstraintMaker *make) {\
+		\
+		}];\n\n";
+
+
 	} else if ($4~/UI/) {
 		viewName=propertyname;
 
