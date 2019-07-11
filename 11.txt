@@ -1,9 +1,7 @@
-@property (nonatomic, copy) NSString *goodsTitle;
-
-@property (nonatomic, copy) NSString *payAmount;
-
-@property (nonatomic, strong) NSNumber *tcValue;
-
-@property (nonatomic, strong) NSNumber *status;
-
-@property (nonatomic, copy) NSString *nickname;
+typedef NS_ENUM(NSUInteger, GoodsDetailCellType) {
+    GoodsDetailCellTypeCycle,
+    GoodsDetailCellTypePrice,
+    GoodsDetailCellTypeRecommend,
+    GoodsDetailCellTypeDetail,
+    GoodsDetailCellCount
+};

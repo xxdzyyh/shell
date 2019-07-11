@@ -1,0 +1,9 @@
+#!bin/bash
+
+var=$(svn add 20190617173132 | grep svn)
+echo "<"$var">"
+if [[ $var -eq 1 ]]; then
+	echo "Success"
+else
+	echo "failed"
+fi
