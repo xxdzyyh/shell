@@ -1,7 +1,11 @@
-typedef NS_ENUM(NSUInteger, GoodsDetailCellType) {
-    GoodsDetailCellTypeCycle,
-    GoodsDetailCellTypePrice,
-    GoodsDetailCellTypeRecommend,
-    GoodsDetailCellTypeDetail,
-    GoodsDetailCellCount
+typedef NS_ENUM(NSUInteger, BFCustomAssetCellType) {
+    BFCustomAssetCellTypeName,
+    BFCustomAssetCellTypeAmount,
+    BFCustomAssetCellTypeRate,
+    BFCustomAssetCellTypeTime,
+    BFCustomAssetCellTypeInterestDate,
+    BFCustomAssetCellTypeEmpty,
+    BFCustomAssetCellTypeAlertSwitch,
+    BFCustomAssetCellTypeAlertDate,
+    BFCustomAssetCellCount
 };
