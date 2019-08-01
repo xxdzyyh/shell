@@ -1,11 +1,1 @@
-typedef NS_ENUM(NSUInteger, BFCustomAssetCellType) {
-    BFCustomAssetCellTypeName,
-    BFCustomAssetCellTypeAmount,
-    BFCustomAssetCellTypeRate,
-    BFCustomAssetCellTypeTime,
-    BFCustomAssetCellTypeInterestDate,
-    BFCustomAssetCellTypeEmpty,
-    BFCustomAssetCellTypeAlertSwitch,
-    BFCustomAssetCellTypeAlertDate,
-    BFCustomAssetCellCount
-};
+nameLabel(b:0xFFFFFF,t:"wwwww",f:15)

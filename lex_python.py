@@ -1,8 +1,31 @@
 # -*- coding: UTF-8 -*-
-
 import re
+from enum import Enum
 
+# 词法分析是词素到词法单元的过程
+class TokenType(Enum):
+	Init = 0
+	Operator = 1
+	Number = 2
+	Keyword = 3
+	String = 4
+	Separator = 5
+	Identify = 6
+
+# 词法单元
 class Token(object):
+	def __init__(this):
+		# 行号
+		this.line = 0
+		# 类型
+		this.type = TokenType.Init
+		this.value = 0
+
+	def __str__(this):
+		return "line:" + str(this.line) + ", type:" + str(this.type) + ", value:" + str(this.value)
+
+# 词法分析器
+class Lexer(object):
 
 	def __init__(this):
 		# 设置语言关键字
@@ -10,20 +33,24 @@ class Token(object):
 		# 设置分隔符
 		this.separator = [',','(',')']
 		# 设置操作符
-		this.operator = [':']
+		this.operator = [':'，'+']
+		this.tokenObjects = []
+		this.line_num = 0
 
 	def read_file(this,filename):
 		with open(filename,"r") as f_input:
 			return [line.strip() for line in f_input]
 
 	def run(this,line):
-		# # 去掉空白行
-		# if len(i) < 1:
-		# 	continue
-		# else:
-		# 	# 去掉注释
-		# 	if line.startswith('//'):
-		# 		continue
+		this.line_num = this.line_num + 1
+		# 去掉空白行
+		if len(line) < 1:
+			return
+		else:
+			# 去掉注释
+			if line.startswith('//'):
+				return
+
 
 		each = []
 		for letter in line:
@@ -39,50 +66,55 @@ class Token(object):
 		# 3 是关键字或变量名
 		# 4 是字符串 STRING
 		oflag = 0
+		
 
 		for e in each:
 			if oflag == 1:
 				# 这个位置处理操作符是多个字符的情况
 				if e in this.separator:
-					print('operator-' + word + e)
+					this.addToken(TokenType.Separator,word)
 				elif re.match(r'[a-zA-Z\_]',e):
-
-
 					word = word + e
 				oflag = 0
+				
+
 				continue
 			elif oflag == 2:
-
 				if e == '':
-					print('number-' + word)
+					this.addToken(TokenType.Number,word)
 					word = ''
 					oflag = 0
+					
 				elif e in this.separator:
-					print('number-' + word)
+					this.addToken(TokenType.Number,word)
 					word = ''
 					oflag = 0
+					
 			elif oflag == 3: # 是关键字或变量名
 				if e == '':
 					if word in this.keywords:
-						print('keywords-' + word)
+						this.addToken(TokenType.Keyword,word)	
 					else:
-						print('identify-' + word)
+						this.addToken(TokenType.Identify,word)
 					word = ''
 					oflag = 0
+					
 				elif e in this.separator:
 					if word in this.keywords:
-						print('keywords-' + word)
-					else: 
-						print('identify-' + word)
+						this.addToken(TokenType.Keyword,word)	
+					else:
+						this.addToken(TokenType.Identify,word)
 					word = ''
 					oflag = 0
+					
 				elif e in this.operator:
 					if word in this.keywords:
-						print('keywords-' + word)
-					else: 
-						print('identify-' + word)
+						this.addToken(TokenType.Keyword,word)	
+					else:
+						this.addToken(TokenType.Identify,word)	
 					word = ''
 					oflag = 0
+					
 				else:
 					word = word + e
 				continue
@@ -91,9 +123,10 @@ class Token(object):
 					word = word + e
 				elif e == '"':
 					word = word + e
-					print('string' + word)
+					this.addToken(TokenType.String,word)
 					word = ''
 					oflag = 0
+
 				continue
 
 			# 判断是否是操作符
@@ -104,7 +137,7 @@ class Token(object):
 
 			# 判断是否是分隔符
 			if e in this.separator:
-				print('separator-' + e)
+				this.addToken(TokenType.Separator,e)
 				continue
 
 			# 判断是否是常数
@@ -125,12 +158,30 @@ class Token(object):
 				word = word + e
 				continue
 
+	def addToken(this,type,value):
+		tokenObject = Token()
+		tokenObject.type = type
+		tokenObject.value = value
+		tokenObject.line = this.line_num
+		this.tokenObjects.append(tokenObject)
+
+
+
+
+# 语法分析器
+class Parser(object)
+	
 
 if __name__ == '__main__':
-	token = Token()
+	lexer = Lexer()
 	filepath = "/Users/xiaoniu/Workspace/shell/11.txt"
-	lines = token.read_file(filepath)
+	lines = lexer.read_file(filepath)
+
+
 
 	for line in lines:
-		token.run(line)
+		lexer.run(line)
+
+	for obj in token.tokenObjects:
+		print(obj)
 
