@@ -1,5 +1,5 @@
 H|-20-self.nameLabel-20-self.button-|
-V|-30-nameLabel(40)|
+V|-30-self.nameLabel(40)-15-|
 
 self.view = productTitleLabel + typeLabel
 

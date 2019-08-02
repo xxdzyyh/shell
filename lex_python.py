@@ -185,7 +185,7 @@ class Parser(object):
 		this.declear = ''
 		this.getter = ''
 		this.subviews = '- (void)setupSubviews {'
-		this.contraints = '- (void)setupConstraints {'
+		this.contraints = {}
 
 	def run(this,tokens): 
 		if len(tokens)  < 2:
@@ -208,7 +208,8 @@ class Parser(object):
 		preValue = 0
 		currentView = ''
 		currentValue = 0
-
+		preConstrains = ''
+	
 		# this.contraints = this.contraints + '\n\t'+ '[self.' + propertyName + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n';
 
 		if token0.type == TokenType.Keyword:
@@ -224,11 +225,11 @@ class Parser(object):
 						if tokeni1.value == '(':
 							if len(currentView):
 								print('<Height:' + str(tokeni1) + str(tokeni) + '>')
-								this.contraints = this.contraints + '\t'+ 'make.height.mas_equalTo(' + tokeni.value + ');'
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t'+ 'make.height.mas_equalTo(scaleY(' + tokeni.value + '));\n'
 						else:
 							if currentView == '|':
 								print('<Top:' + str(tokeni1) + str(tokeni) + '>')
-								this.contraints = this.contraints + '\t'+ 'make.top.mas_offset(' + tokeni.value + ');'
+								preConstrains = preConstrains + '\t\t'+ 'make.top.mas_offset(scaleY(' + tokeni.value + '));\n'
 							else:
 								currentValue = tokeni.value
 
@@ -239,15 +240,18 @@ class Parser(object):
 							preView = currentView
 							currentView = tokeni.value;
 							if currentValue > 0:
-								this.contraints = this.contraints + '\t['+ tokeni.value +' make.left.equalTo(self.' + tokeni1.value + ').offset(scaleY('+ currentValue +'))];'
-					
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\tmake.top.equalTo(self.' + tokeni1.value + ').offset(scaleY('+ currentValue +'))];'
+							if preView == '|':
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + preConstrains
+								preConstrains = ''
+
 					elif tokeni.value == '|':
 						if len(currentView) == 0:
 							currentView = tokeni.value;
 						else:
 							if tokeni1.value == '-':
 								if len(currentView):
-									this.contraints = this.contraints + '\t' + 'make.bottom.mas_offset(-scaleY('+ str(currentValue) +'))];'
+									this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t' + 'make.bottom.mas_offset(-scaleY('+ str(currentValue) +'));'
 
 					i = i + 1
 						
@@ -260,23 +264,29 @@ class Parser(object):
 						if tokeni1.value == '(':
 							if len(currentView):
 								print('<Width:' + str(tokeni1) + str(tokeni) + '>')
-								this.contraints = this.contraints + '\t'+ 'make.width.mas_equalTo(' + tokeni.value + ');'
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t'+ 'make.width.mas_equalTo(' + tokeni.value + ');\n'
 						else:
 							if currentView == '|':
 								print('<Left:' + str(tokeni1) + str(tokeni) + '>')
-								this.contraints = this.contraints + '\t'+ 'make.left.mas_equalTo(' + tokeni.value + ');'
+								preConstrains = preConstrains + '\t\t'+ 'make.left.mas_equalTo(scaleX(' + tokeni.value + '));\n'
 							else:
+								# 到下一个identify才能确定约束怎么写
 								currentValue = tokeni.value
 
 					elif tokeni.type == TokenType.Identify:
 						if len(currentView) == 0:
 							currentView = tokeni.value;
+							if len(preConstrains):
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + preConstrains
+								preConstrains = ''
 						else:
 							preView = currentView
 							currentView = tokeni.value;
 							if int(currentValue) > 0:
-								this.contraints = this.contraints + '\t'+'make.right.equalTo('+ tokeni1.value +').offset(-scaleX('+ str(currentValue) +'));'
-					
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t'+'make.left.equalTo('+ preView +'.mas_right).offset(scaleX('+ str(currentValue) +'));\n'
+							if preView == '|':
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + preConstrains
+								preConstrains = ''
 					elif tokeni.value == '|':
 						if len(currentView) == 0:
 							currentView = tokeni.value;
@@ -328,7 +338,6 @@ class Parser(object):
 				getter = getter + '\t}\n'
 				getter = getter + '\t' + 'return ' + varName + ';\n}\n'
 
-				this.contraints = this.contraints + '\n\t' + '[self.' + propertyName + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n\n\t}];\n\t'
 				this.getter = this.getter + '\n' + getter;
 
 			elif token1.type == TokenType.Operator:
@@ -345,8 +354,15 @@ class Parser(object):
 	
 	def finish(this):
 		this.subviews = this.subviews + '\n}\n'
-		this.contraints = this.contraints + '\n}\n'
-		this.result = this.result + '\n' + this.declear + '\n#pragma mark - Private Methods\n\n'+ this.subviews + '\n' + this.contraints + '\n#pragma mark - Property\n\n' + this.getter
+		this.contraints = this.contraints 
+
+		finalCons = '- (void)setupConstraints {\n'
+		for cst in this.contraints.values():
+			finalCons = finalCons + '\n\t' + cst + '\n\t}];\n'
+		
+		finalCons = finalCons + '\n}'
+
+		this.result = this.result + '\n' + this.declear + '\n#pragma mark - Private Methods\n\n'+ this.subviews + '\n' + finalCons + '\n#pragma mark - Property\n\n' + this.getter
 
 
 	def viewTypeWithString(this,string):
@@ -370,7 +386,7 @@ if __name__ == '__main__':
 	lexer = Lexer()
 	parser = Parser()
 
-	filepath = "/Users/xiaoniu/Workspace/shell/11.txt"
+	filepath = "./11.txt"
 	lines = lexer.read_file(filepath)
 
 	for line in lines:
