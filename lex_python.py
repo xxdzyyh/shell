@@ -31,7 +31,7 @@ class Lexer(object):
 		# 设置语言关键字
 		this.keywords = ['b','c','f','i','lbc','lbw','lc','p','t','tc','H','V']
 		# 设置分隔符
-		this.separator = [',','(',')']
+		this.separator = [',','(',')','|','-']
 		# 设置操作符
 		this.operator = [':', '+', '=']
 		this.tokenObjects = []
@@ -51,7 +51,6 @@ class Lexer(object):
 			if line.startswith('//'):
 				return
 
-
 		each = []
 		for letter in line:
 			each.append(letter)
@@ -66,31 +65,29 @@ class Lexer(object):
 		# 3 是关键字或变量名
 		# 4 是字符串 STRING
 		oflag = 0
-		
-
 		for e in each:
+			# print('<' + e + '>')
 			if oflag == 1:
-				# 这个位置处理操作符是多个字符的情况
 				if word + e in this.operator:
+					# 这个位置处理操作符是多个字符的情况
 					this.addToken(TokenType.Operator,word + e)
 				elif re.match(r'[a-zA-Z\_]',e):
 					word = word + e
-					this.addToken(TokenType.Operator,this.op_first)
-					
+					this.addToken(TokenType.Operator,op_first)
 				oflag = 0
 				op_first = ''
 				continue
-			elif oflag == 2:
+			elif oflag == 2: # 常数
+				# print('<2,' + e + ',' + word + '>')
 				if e == '':
 					this.addToken(TokenType.Number,word)
 					word = ''
 					oflag = 0
-					
 				elif e in this.separator:
+					# print('<2,Separator,' + e + ',' + word + '>')
 					this.addToken(TokenType.Number,word)
 					word = ''
-					oflag = 0
-					
+					oflag = 0	
 			elif oflag == 3: # 是关键字或变量名
 				if e == '':
 					if word in this.keywords:
@@ -159,12 +156,24 @@ class Lexer(object):
 				word = word + e
 				continue
 
+		# 因为没有结束标志，所以需要在遍历完成后对word再次处理
+		if len(word) > 0:
+			if word in this.operator:
+				this.addToken(TokenType.Operator,word)
+			elif word in this.separator:
+				this.addToken(TokenType.Separator,word)
+			elif word in this.keywords:
+				this.addToken(TokenType.Keyword,word)
+			elif re.match(r'[a-zA-Z\_]',word):
+				this.addToken(TokenType.Identify,word)
+			
+
 	def addToken(this,type,value):
 		tokenObject = Token()
 		tokenObject.type = type
 		tokenObject.value = value
 		tokenObject.line = this.line_num
-		print(tokenObject)
+		# print(tokenObject)
 		this.tokenObjects.append(tokenObject)
 
 
@@ -179,21 +188,104 @@ class Parser(object):
 		this.contraints = '- (void)setupConstraints {'
 
 	def run(this,tokens): 
-		if len(tokens) == 0:
+		if len(tokens)  < 2:
 			return
 			
 		token0 = tokens[0]
 		token1 = tokens[1]
 
+		propertyName = token0.value
+		varName = '_' + propertyName
+		className = this.viewTypeWithString(token0.value)
+
+		# 0 方向未知
+		# 1 左边
+		# 2 右边
+		orient = 0
+
+		# 上一个视图
+		preView = ''
+		preValue = 0
+		currentView = ''
+		currentValue = 0
+
+		# this.contraints = this.contraints + '\n\t'+ '[self.' + propertyName + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n';
+
 		if token0.type == TokenType.Keyword:
 			# 词素描述的是约束
 			print('创建约束')
+			print(token0)
+			if token0.value == 'V':
+				i = 1	
+				while i < len(tokens):
+					tokeni = tokens[i]
+					tokeni1 = tokens[i-1]
+					if tokeni.type == TokenType.Number:
+						if tokeni1.value == '(':
+							if len(currentView):
+								print('<Height:' + str(tokeni1) + str(tokeni) + '>')
+								this.contraints = this.contraints + '\t'+ 'make.height.mas_equalTo(' + tokeni.value + ');'
+						else:
+							if currentView == '|':
+								print('<Top:' + str(tokeni1) + str(tokeni) + '>')
+								this.contraints = this.contraints + '\t'+ 'make.top.mas_offset(' + tokeni.value + ');'
+							else:
+								currentValue = tokeni.value
+
+					elif tokeni.type == TokenType.Identify:
+						if len(currentView) == 0:
+							currentView = tokeni.value;
+						else:
+							preView = currentView
+							currentView = tokeni.value;
+							if currentValue > 0:
+								this.contraints = this.contraints + '\t['+ tokeni.value +' make.left.equalTo(self.' + tokeni1.value + ').offset(scaleY('+ currentValue +'))];'
+					
+					elif tokeni.value == '|':
+						if len(currentView) == 0:
+							currentView = tokeni.value;
+						else:
+							if tokeni1.value == '-':
+								if len(currentView):
+									this.contraints = this.contraints + '\t' + 'make.bottom.mas_offset(-scaleY('+ str(currentValue) +'))];'
+
+					i = i + 1
+						
+			elif token0.value == 'H':
+				i = 1	
+				while i < len(tokens):
+					tokeni = tokens[i]
+					tokeni1 = tokens[i-1]
+					if tokeni.type == TokenType.Number:
+						if tokeni1.value == '(':
+							if len(currentView):
+								print('<Width:' + str(tokeni1) + str(tokeni) + '>')
+								this.contraints = this.contraints + '\t'+ 'make.width.mas_equalTo(' + tokeni.value + ');'
+						else:
+							if currentView == '|':
+								print('<Left:' + str(tokeni1) + str(tokeni) + '>')
+								this.contraints = this.contraints + '\t'+ 'make.left.mas_equalTo(' + tokeni.value + ');'
+							else:
+								currentValue = tokeni.value
+
+					elif tokeni.type == TokenType.Identify:
+						if len(currentView) == 0:
+							currentView = tokeni.value;
+						else:
+							preView = currentView
+							currentView = tokeni.value;
+							if int(currentValue) > 0:
+								this.contraints = this.contraints + '\t'+'make.right.equalTo('+ tokeni1.value +').offset(-scaleX('+ str(currentValue) +'));'
+					
+					elif tokeni.value == '|':
+						if len(currentView) == 0:
+							currentView = tokeni.value;
+
+					i = i + 1
 		elif token0.type == TokenType.Identify:
 			if token1.type == TokenType.Separator:
 				# 词素描述的是控件属性
-				propertyName = token0.value
-				varName = '_' + propertyName
-				className = this.viewTypeWithString(token0.value)
+				
 				this.declear =  this.declear + "@property (nonatomic, strong) " + className + ' *' + str(token0.value) + ';\n'
 				getter = '- (' + className + '*)' + propertyName + ' {\n'
 				getter = getter + '\t' + 'if (!'+ varName + ') {\n'
@@ -236,13 +328,20 @@ class Parser(object):
 				getter = getter + '\t}\n'
 				getter = getter + '\t' + 'return ' + varName + ';\n}\n'
 
-				this.subviews = this.subviews + '\n\t' + '[self.view addSubview:self.' + propertyName + '];'
 				this.contraints = this.contraints + '\n\t' + '[self.' + propertyName + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n\n\t}];\n\t'
 				this.getter = this.getter + '\n' + getter;
 
 			elif token1.type == TokenType.Operator:
 				# 词素描述的控件关系
 				print('创建控件关系')
+				i = 2;
+				while i < len(tokens):
+					tokeni = tokens[i]
+					
+					if tokeni.type == TokenType.Identify:
+						this.subviews = this.subviews + '\n\t' + '[' + token0.value + ' addSubview:self.' + tokeni.value + '];'
+					i = i + 1
+
 	
 	def finish(this):
 		this.subviews = this.subviews + '\n}\n'

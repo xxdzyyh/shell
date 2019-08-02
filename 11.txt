@@ -1,9 +1,6 @@
-productTitleLabel(tc:0x222222,f:13)
-typeLabel(tc:0x6D819C,lbc:0x6D819C,lc:2,lbw:1)
-waitMoneyKeyLabel(tc:0x828282,f:11,t:"代收本息")
-waitMoneyValueLabel(tc:0x828282,f:12)
-yesterdayEarnKeyLabel(tc:0x828282,f:11,t:"代收本息")
-yesterdayEarnValueLabel(tc:0x828282,f:12)
-totalEarnKeyLabel(tc:0x828282,f:11,t:"代收本息")
-totalEarnValueLabel(tc:0x828282,f:12)
+H|-20-self.nameLabel-20-self.button-|
+V|-30-nameLabel(40)|
+
+self.view = productTitleLabel + typeLabel
+
 
