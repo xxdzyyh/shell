@@ -159,7 +159,7 @@ NS_ASSUME_NONNULL_END
     [super viewDidLoad];
 
     [self setupSubviews];
-    [self setupConstraint];
+    [self setupConstraints];
     [self setupEvent];
     [self showHudLoading];
     [self sendRequest];
@@ -181,7 +181,7 @@ NS_ASSUME_NONNULL_END
 
 }
 
-- (void)setupConstraint {
+- (void)setupConstraints {
 	
 }
 
@@ -190,8 +190,6 @@ NS_ASSUME_NONNULL_END
 }
 
 #pragma mark - Event
-
-#pragma mark - <<#Delegate#>>
 
 #pragma mark - Property
 
@@ -237,7 +235,7 @@ NS_ASSUME_NONNULL_END
 	self = [super initWithCellIdentifier:cellId];
     if (self) {
         [self setupSubviews];
-        [self setupConstraint];
+        [self setupConstraints];
     }
     return self;
 }
@@ -248,7 +246,7 @@ NS_ASSUME_NONNULL_END
 
 }
 
-- (void)setupConstraint {
+- (void)setupConstraints {
 
 }
 
@@ -327,7 +325,7 @@ NS_ASSUME_NONNULL_END
     self = [super initWithFrame:frame];
     if (self) {
         [self setupSubviews];
-        [self setupConstraint];
+        [self setupConstraints];
         [self bind];
     }
     return self;
@@ -339,7 +337,7 @@ NS_ASSUME_NONNULL_END
 
 }
 
-- (void)setupConstraint {
+- (void)setupConstraints {
 
 }
 

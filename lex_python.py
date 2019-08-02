@@ -29,11 +29,11 @@ class Lexer(object):
 
 	def __init__(this):
 		# 设置语言关键字
-		this.keywords = ['b','c','f','i','lbc','lbw','lc','p','t','tc']
+		this.keywords = ['b','c','f','i','lbc','lbw','lc','p','t','tc','H','V']
 		# 设置分隔符
 		this.separator = [',','(',')']
 		# 设置操作符
-		this.operator = [':'，'+']
+		this.operator = [':', '+', '=']
 		this.tokenObjects = []
 		this.line_num = 0
 
@@ -71,13 +71,14 @@ class Lexer(object):
 		for e in each:
 			if oflag == 1:
 				# 这个位置处理操作符是多个字符的情况
-				if e in this.separator:
-					this.addToken(TokenType.Separator,word)
+				if word + e in this.operator:
+					this.addToken(TokenType.Operator,word + e)
 				elif re.match(r'[a-zA-Z\_]',e):
 					word = word + e
+					this.addToken(TokenType.Operator,this.op_first)
+					
 				oflag = 0
-				
-
+				op_first = ''
 				continue
 			elif oflag == 2:
 				if e == '':
@@ -98,23 +99,23 @@ class Lexer(object):
 						this.addToken(TokenType.Identify,word)
 					word = ''
 					oflag = 0
-					
 				elif e in this.separator:
 					if word in this.keywords:
 						this.addToken(TokenType.Keyword,word)	
 					else:
 						this.addToken(TokenType.Identify,word)
+					
+					this.addToken(TokenType.Separator,e)
 					word = ''
 					oflag = 0
-					
 				elif e in this.operator:
 					if word in this.keywords:
 						this.addToken(TokenType.Keyword,word)	
 					else:
-						this.addToken(TokenType.Identify,word)	
+						this.addToken(TokenType.Identify,word)
+					this.addToken(TokenType.Operator,e)	
 					word = ''
 					oflag = 0
-					
 				else:
 					word = word + e
 				continue
@@ -163,25 +164,120 @@ class Lexer(object):
 		tokenObject.type = type
 		tokenObject.value = value
 		tokenObject.line = this.line_num
+		print(tokenObject)
 		this.tokenObjects.append(tokenObject)
 
 
-
-
 # 语法分析器
-class Parser(object)
+class Parser(object):
 	
+	def __init__(this):
+		this.result = ''
+		this.declear = ''
+		this.getter = ''
+		this.subviews = '- (void)setupSubviews {'
+		this.contraints = '- (void)setupConstraints {'
+
+	def run(this,tokens): 
+		if len(tokens) == 0:
+			return
+			
+		token0 = tokens[0]
+		token1 = tokens[1]
+
+		if token0.type == TokenType.Keyword:
+			# 词素描述的是约束
+			print('创建约束')
+		elif token0.type == TokenType.Identify:
+			if token1.type == TokenType.Separator:
+				# 词素描述的是控件属性
+				propertyName = token0.value
+				varName = '_' + propertyName
+				className = this.viewTypeWithString(token0.value)
+				this.declear =  this.declear + "@property (nonatomic, strong) " + className + ' *' + str(token0.value) + ';\n'
+				getter = '- (' + className + '*)' + propertyName + ' {\n'
+				getter = getter + '\t' + 'if (!'+ varName + ') {\n'
+				getter = getter + '\t\t' + varName + '= [[' + className + ' alloc] init];\n'
+
+				i = 2
+				while i < len(tokens):
+					tokeni = tokens[i]
+					if tokeni.type == TokenType.Keyword:
+						tokeni2 = tokens[i+2]
+						if tokeni.value == 'b':
+							getter = getter + '\t\t' + varName + '.backgroundColor = UIColorFromRGB(' + str(tokeni2.value) + ');\n'
+						elif tokeni.value == 'f':
+							if 'button' in className.lower():
+								getter = getter + '\t\t' + varName + '.titleLabel.font = kFontSize('+str(tokeni2.value)+ ');\n'
+							elif 'label' in className.lower():
+								getter = getter + '\t\t' + varName + '.font = kFontSize('+str(tokeni2.value)+ ');\n'
+						elif tokeni.value == 'i':
+							if 'button' in className.lower():
+								getter = getter + '\t\t' + '[' + varName + ' setImage:[UIImage imageNamed:@'+str(tokeni2.value)+ ' forState:UIControlStateNormal];\n'
+							elif 'imageview' in className.lower():
+								getter = getter + '\t\t' + varName + '.image = [UIImage imageNamed:@'+str(tokeni2.value)+ '];\n'
+						elif tokeni.value == 't':
+							if 'button' in className.lower():
+								getter = getter + '\t\t' + '[' + varName + ' setTitle:@' + str(tokeni2.value) + ' forState:UIControlStateNormal];\n'
+							else:
+								getter = getter + '\t\t' + varName + '.text = @'+str(tokeni2.value)+ ';\n'
+						elif tokeni.value == 'tc':
+							getter = getter + '\t\t' + varName + '.textColor = UIColorFromRGB('+str(tokeni2.value)+ ');\n'
+						elif tokeni.value == 'lc':
+							getter = getter + '\t\t' + varName + '.layer.cornerRadius = ' + str(tokeni2.value)+ ';\n'
+							getter = getter + '\t\t' + varName + '.layer.masksToBounds = YES;\n'
+						elif tokeni.value == 'lbc':
+							getter = getter + '\t\t' + varName + '.layer.borderColor = UIColorFromRGB(' + str(tokeni2.value)+ ').CGColor;\n'
+						elif tokeni.value == 'lbw':
+							getter = getter + '\t\t' + varName + '.layer.borderWidth = ' + str(tokeni2.value)+ ';\n'
+
+					i = i + 2
+
+				getter = getter + '\t}\n'
+				getter = getter + '\t' + 'return ' + varName + ';\n}\n'
+
+				this.subviews = this.subviews + '\n\t' + '[self.view addSubview:self.' + propertyName + '];'
+				this.contraints = this.contraints + '\n\t' + '[self.' + propertyName + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n\n\t}];\n\t'
+				this.getter = this.getter + '\n' + getter;
+
+			elif token1.type == TokenType.Operator:
+				# 词素描述的控件关系
+				print('创建控件关系')
+	
+	def finish(this):
+		this.subviews = this.subviews + '\n}\n'
+		this.contraints = this.contraints + '\n}\n'
+		this.result = this.result + '\n' + this.declear + '\n#pragma mark - Private Methods\n\n'+ this.subviews + '\n' + this.contraints + '\n#pragma mark - Property\n\n' + this.getter
+
+
+	def viewTypeWithString(this,string):
+		if 'label' in string.lower():
+			return 'UILabel'
+		elif 'button' in string.lower():
+			return 'UIButton'
+		elif 'textField' in string.lower():
+			return 'UITextField'
+		elif 'imageView' in string.lower():
+			return 'UIImageView'
+		elif 'textView' in string.lower():
+			return 'UITextView'
+		elif 'scrollView' in string.lower():
+			return 'UIScrollView'
+		else: 
+			return 'UIView'
+
 
 if __name__ == '__main__':
 	lexer = Lexer()
+	parser = Parser()
+
 	filepath = "/Users/xiaoniu/Workspace/shell/11.txt"
 	lines = lexer.read_file(filepath)
 
-
-
 	for line in lines:
 		lexer.run(line)
+		parser.run(lexer.tokenObjects)
+		lexer.tokenObjects = []
 
-	for obj in token.tokenObjects:
-		print(obj)
-
+	parser.finish()
+	print(parser.result)
