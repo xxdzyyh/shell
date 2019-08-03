@@ -22,7 +22,7 @@ class Token(object):
 		this.value = 0
 
 	def __str__(this):
-		return "line:" + str(this.line) + ", type:" + str(this.type) + ", value:" + str(this.value)
+		return "line:" + str(this.line) + ", type:" + str(this.type) + ", value:" + '<' + str(this.value) + '>'
 
 # 词法分析器
 class Lexer(object):
@@ -31,7 +31,7 @@ class Lexer(object):
 		# 设置语言关键字
 		this.keywords = ['b','c','f','i','lbc','lbw','lc','p','t','tc','H','V']
 		# 设置分隔符
-		this.separator = [',','(',')','|','-']
+		this.separator = [',','(',')','|','-','[',']']
 		# 设置操作符
 		this.operator = [':', '+', '=']
 		this.tokenObjects = []
@@ -66,11 +66,13 @@ class Lexer(object):
 		# 4 是字符串 STRING
 		oflag = 0
 		for e in each:
-			# print('<' + e + '>')
 			if oflag == 1:
+				# print('<1,' + e + ',' + word + '>')
 				if word + e in this.operator:
 					# 这个位置处理操作符是多个字符的情况
 					this.addToken(TokenType.Operator,word + e)
+				elif e == ' ' or e == '':
+					this.addToken(TokenType.Operator,op_first)
 				elif re.match(r'[a-zA-Z\_]',e):
 					word = word + e
 					this.addToken(TokenType.Operator,op_first)
@@ -89,7 +91,9 @@ class Lexer(object):
 					word = ''
 					oflag = 0	
 			elif oflag == 3: # 是关键字或变量名
-				if e == '':
+				# print('<3,' + e + ',' + word + '>')
+				if e == '' or e == ' ':
+					# print('<3.1,' + e + ',' + word + '>')
 					if word in this.keywords:
 						this.addToken(TokenType.Keyword,word)	
 					else:
@@ -117,6 +121,7 @@ class Lexer(object):
 					word = word + e
 				continue
 			elif oflag == 4:
+				# print('<4,' + e + ',' + word + '>')
 				if e != '"':
 					word = word + e
 				elif e == '"':
@@ -135,11 +140,13 @@ class Lexer(object):
 
 			# 判断是否是分隔符
 			if e in this.separator:
+
 				this.addToken(TokenType.Separator,e)
 				continue
 
 			# 判断是否是常数
 			if re.match(r'[0-9\.]',e): 
+				print('<oflag:2,e:'+ e + 'word:'+ word +'>')
 				oflag = 2
 				word = word + e
 				continue
@@ -173,7 +180,7 @@ class Lexer(object):
 		tokenObject.type = type
 		tokenObject.value = value
 		tokenObject.line = this.line_num
-		# print(tokenObject)
+		print(tokenObject)
 		this.tokenObjects.append(tokenObject)
 
 
@@ -214,8 +221,8 @@ class Parser(object):
 
 		if token0.type == TokenType.Keyword:
 			# 词素描述的是约束
-			print('创建约束')
-			print(token0)
+			# print('创建约束')
+			# print(token0)
 			if token0.value == 'V':
 				i = 1	
 				while i < len(tokens):
@@ -229,7 +236,7 @@ class Parser(object):
 						else:
 							if currentView == '|':
 								print('<Top:' + str(tokeni1) + str(tokeni) + '>')
-								preConstrains = preConstrains + '\t\t'+ 'make.top.mas_offset(scaleY(' + tokeni.value + '));\n'
+								preConstrains = preConstrains + '\t\t'+ 'make.top.mas_equal(scaleY(' + tokeni.value + '));\n'
 							else:
 								currentValue = tokeni.value
 
@@ -239,11 +246,23 @@ class Parser(object):
 						else:
 							preView = currentView
 							currentView = tokeni.value;
-							if currentValue > 0:
-								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\tmake.top.equalTo(self.' + tokeni1.value + ').offset(scaleY('+ currentValue +'))];'
+							print('<' + str(currentValue) +'>')
+							if float(currentValue) > 0:
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\tmake.top.equalTo(self.' + preView + ').offset(scaleY('+ currentValue +'));'
+								currentValue = 0
+
 							if preView == '|':
 								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + preConstrains
 								preConstrains = ''
+							
+							if tokeni1.value == '[':
+								if len(currentView):
+									print('<CenterY:' + str(tokeni1) + str(tokeni) + '>')
+
+									if preView == '|':
+										this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t'+ 'make.centerY.mas_equalTo(0);\n'
+									else:
+										this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t'+ 'make.centerY.equalTo(' + preView +');\n'
 
 					elif tokeni.value == '|':
 						if len(currentView) == 0:
@@ -251,7 +270,8 @@ class Parser(object):
 						else:
 							if tokeni1.value == '-':
 								if len(currentView):
-									this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t' + 'make.bottom.mas_offset(-scaleY('+ str(currentValue) +'));'
+									this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t' + 'make.bottom.mas_equalTo(-scaleY('+ str(currentValue) +'));'
+
 
 					i = i + 1
 						
@@ -282,14 +302,19 @@ class Parser(object):
 						else:
 							preView = currentView
 							currentView = tokeni.value;
-							if int(currentValue) > 0:
+							if float(currentValue) > 0:
 								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t'+'make.left.equalTo('+ preView +'.mas_right).offset(scaleX('+ str(currentValue) +'));\n'
 							if preView == '|':
 								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + preConstrains
 								preConstrains = ''
 					elif tokeni.value == '|':
 						if len(currentView) == 0:
+							# 开始的 |
 							currentView = tokeni.value;
+						else:
+							# 结束的 |
+							if (tokeni1.value == '-'):
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t'+'make.right.mas_equalTo(-scaleX('+ str(currentValue) +'));\n'
 
 					i = i + 1
 		elif token0.type == TokenType.Identify:
