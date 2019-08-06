@@ -1,6 +1,15 @@
+#!/usr/local/bin/python3
 # -*- coding: UTF-8 -*-
 import re
+import sys
+import fileinput
+
 from enum import Enum
+
+
+def myPrint(value):
+	#print(value)
+	value = ''
 
 # 词法分析是词素到词法单元的过程
 class TokenType(Enum):
@@ -37,8 +46,8 @@ class Lexer(object):
 		this.tokenObjects = []
 		this.line_num = 0
 
-	def read_file(this,filename):
-		with open(filename,"r") as f_input:
+	def read_file(this):
+		with fileinput.input() as f_input:
 			return [line.strip() for line in f_input]
 
 	def run(this,line):
@@ -67,7 +76,7 @@ class Lexer(object):
 		oflag = 0
 		for e in each:
 			if oflag == 1:
-				# print('<1,' + e + ',' + word + '>')
+				# myPrint('<1,' + e + ',' + word + '>')
 				if word + e in this.operator:
 					# 这个位置处理操作符是多个字符的情况
 					this.addToken(TokenType.Operator,word + e)
@@ -80,20 +89,20 @@ class Lexer(object):
 				op_first = ''
 				continue
 			elif oflag == 2: # 常数
-				# print('<2,' + e + ',' + word + '>')
+				# myPrint('<2,' + e + ',' + word + '>')
 				if e == '':
 					this.addToken(TokenType.Number,word)
 					word = ''
 					oflag = 0
 				elif e in this.separator:
-					# print('<2,Separator,' + e + ',' + word + '>')
+					# myPrint('<2,Separator,' + e + ',' + word + '>')
 					this.addToken(TokenType.Number,word)
 					word = ''
 					oflag = 0	
 			elif oflag == 3: # 是关键字或变量名
-				# print('<3,' + e + ',' + word + '>')
+				# myPrint('<3,' + e + ',' + word + '>')
 				if e == '' or e == ' ':
-					# print('<3.1,' + e + ',' + word + '>')
+					# myPrint('<3.1,' + e + ',' + word + '>')
 					if word in this.keywords:
 						this.addToken(TokenType.Keyword,word)	
 					else:
@@ -121,7 +130,7 @@ class Lexer(object):
 					word = word + e
 				continue
 			elif oflag == 4:
-				# print('<4,' + e + ',' + word + '>')
+				# myPrint('<4,' + e + ',' + word + '>')
 				if e != '"':
 					word = word + e
 				elif e == '"':
@@ -146,7 +155,7 @@ class Lexer(object):
 
 			# 判断是否是常数
 			if re.match(r'[0-9\.]',e): 
-				print('<oflag:2,e:'+ e + 'word:'+ word +'>')
+				myPrint('<oflag:2,e:'+ e + 'word:'+ word +'>')
 				oflag = 2
 				word = word + e
 				continue
@@ -180,7 +189,7 @@ class Lexer(object):
 		tokenObject.type = type
 		tokenObject.value = value
 		tokenObject.line = this.line_num
-		print(tokenObject)
+		myPrint(tokenObject)
 		this.tokenObjects.append(tokenObject)
 
 
@@ -221,8 +230,8 @@ class Parser(object):
 
 		if token0.type == TokenType.Keyword:
 			# 词素描述的是约束
-			# print('创建约束')
-			# print(token0)
+			# myPrint('创建约束')
+			# myPrint(token0)
 			if token0.value == 'V':
 				i = 1	
 				while i < len(tokens):
@@ -231,12 +240,12 @@ class Parser(object):
 					if tokeni.type == TokenType.Number:
 						if tokeni1.value == '(':
 							if len(currentView):
-								print('<Height:' + str(tokeni1) + str(tokeni) + '>')
-								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t'+ 'make.height.mas_equalTo(scaleY(' + tokeni.value + '));\n'
+								myPrint('<Height:' + str(tokeni1) + str(tokeni) + '>')
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {') + '\n\t\t'+ 'make.height.mas_equalTo(scaleY(' + tokeni.value + '));'
 						else:
 							if currentView == '|':
-								print('<Top:' + str(tokeni1) + str(tokeni) + '>')
-								preConstrains = preConstrains + '\t\t'+ 'make.top.mas_equal(scaleY(' + tokeni.value + '));\n'
+								myPrint('<Top:' + str(tokeni1) + str(tokeni) + '>')
+								preConstrains = preConstrains + '\n\t\t'+ 'make.top.mas_equalTo(scaleY(' + tokeni.value + '));'
 							else:
 								currentValue = tokeni.value
 
@@ -246,23 +255,23 @@ class Parser(object):
 						else:
 							preView = currentView
 							currentView = tokeni.value;
-							print('<' + str(currentValue) +'>')
+							myPrint('<' + str(currentValue) +'>')
 							if float(currentValue) > 0:
-								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\tmake.top.equalTo(self.' + preView + ').offset(scaleY('+ currentValue +'));'
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {') + '\n\t\t' +'make.top.equalTo(self.' + preView + '.mas_bottom).offset(scaleY('+ currentValue +'));'
 								currentValue = 0
 
 							if preView == '|':
-								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + preConstrains
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {') + preConstrains
 								preConstrains = ''
 							
 							if tokeni1.value == '[':
 								if len(currentView):
-									print('<CenterY:' + str(tokeni1) + str(tokeni) + '>')
+									myPrint('<CenterY:' + str(tokeni1) + str(tokeni) + '>')
 
 									if preView == '|':
-										this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t'+ 'make.centerY.mas_equalTo(0);\n'
+										this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {') + '\n\t\t'+ 'make.centerY.mas_equalTo(0);'
 									else:
-										this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t'+ 'make.centerY.equalTo(' + preView +');\n'
+										this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {') + '\n\t\t'+ 'make.centerY.equalTo(' + preView +');'
 
 					elif tokeni.value == '|':
 						if len(currentView) == 0:
@@ -270,7 +279,7 @@ class Parser(object):
 						else:
 							if tokeni1.value == '-':
 								if len(currentView):
-									this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t' + 'make.bottom.mas_equalTo(-scaleY('+ str(currentValue) +'));'
+									this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {') + '\n\t\t' + 'make.bottom.mas_equalTo(-scaleY('+ str(currentValue) +'));'
 
 
 					i = i + 1
@@ -283,12 +292,12 @@ class Parser(object):
 					if tokeni.type == TokenType.Number:
 						if tokeni1.value == '(':
 							if len(currentView):
-								print('<Width:' + str(tokeni1) + str(tokeni) + '>')
-								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t'+ 'make.width.mas_equalTo(' + tokeni.value + ');\n'
+								myPrint('<Width:' + str(tokeni1) + str(tokeni) + '>')
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {') + '\n\t\t'+ 'make.width.mas_equalTo(' + tokeni.value + ');'
 						else:
 							if currentView == '|':
-								print('<Left:' + str(tokeni1) + str(tokeni) + '>')
-								preConstrains = preConstrains + '\t\t'+ 'make.left.mas_equalTo(scaleX(' + tokeni.value + '));\n'
+								myPrint('<Left:' + str(tokeni1) + str(tokeni) + '>')
+								preConstrains = preConstrains + '\n\t\t'+ 'make.left.mas_equalTo(scaleX(' + tokeni.value + '));'
 							else:
 								# 到下一个identify才能确定约束怎么写
 								currentValue = tokeni.value
@@ -303,9 +312,9 @@ class Parser(object):
 							preView = currentView
 							currentView = tokeni.value;
 							if float(currentValue) > 0:
-								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t'+'make.left.equalTo('+ preView +'.mas_right).offset(scaleX('+ str(currentValue) +'));\n'
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {') + '\n\t\t'+'make.left.equalTo('+ preView +'.mas_right).offset(scaleX('+ str(currentValue) +'));'
 							if preView == '|':
-								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + preConstrains
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {') + preConstrains
 								preConstrains = ''
 					elif tokeni.value == '|':
 						if len(currentView) == 0:
@@ -314,7 +323,7 @@ class Parser(object):
 						else:
 							# 结束的 |
 							if (tokeni1.value == '-'):
-								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {\n') + '\t\t'+'make.right.mas_equalTo(-scaleX('+ str(currentValue) +'));\n'
+								this.contraints[currentView] = this.contraints.get(currentView,'['+ currentView + ' mas_makeConstraints:^(MASConstraintMaker *make) {') + '\n\t\t'+'make.right.mas_equalTo(-scaleX('+ str(currentValue) +'));'
 
 					i = i + 1
 		elif token0.type == TokenType.Identify:
@@ -340,7 +349,7 @@ class Parser(object):
 								getter = getter + '\t\t' + varName + '.font = kFontSize('+str(tokeni2.value)+ ');\n'
 						elif tokeni.value == 'i':
 							if 'button' in className.lower():
-								getter = getter + '\t\t' + '[' + varName + ' setImage:[UIImage imageNamed:@'+str(tokeni2.value)+ ' forState:UIControlStateNormal];\n'
+								getter = getter + '\t\t' + '[' + varName + ' setImage:[UIImage imageNamed:@'+str(tokeni2.value)+ '] forState:UIControlStateNormal];\n'
 							elif 'imageview' in className.lower():
 								getter = getter + '\t\t' + varName + '.image = [UIImage imageNamed:@'+str(tokeni2.value)+ '];\n'
 						elif tokeni.value == 't':
@@ -349,7 +358,10 @@ class Parser(object):
 							else:
 								getter = getter + '\t\t' + varName + '.text = @'+str(tokeni2.value)+ ';\n'
 						elif tokeni.value == 'tc':
-							getter = getter + '\t\t' + varName + '.textColor = UIColorFromRGB('+str(tokeni2.value)+ ');\n'
+							if 'button' in className.lower():
+								getter = getter + '\t\t' + '[' + varName + ' setTitleColor:UIColorFromRGB('+str(tokeni2.value)+ ') forState:UIControlStateNormal];\n'
+							else:
+								getter = getter + '\t\t' + varName + '.textColor = UIColorFromRGB('+str(tokeni2.value)+ ');\n'
 						elif tokeni.value == 'lc':
 							getter = getter + '\t\t' + varName + '.layer.cornerRadius = ' + str(tokeni2.value)+ ';\n'
 							getter = getter + '\t\t' + varName + '.layer.masksToBounds = YES;\n'
@@ -367,7 +379,7 @@ class Parser(object):
 
 			elif token1.type == TokenType.Operator:
 				# 词素描述的控件关系
-				print('创建控件关系')
+				myPrint('创建控件关系')
 				i = 2;
 				while i < len(tokens):
 					tokeni = tokens[i]
@@ -381,7 +393,7 @@ class Parser(object):
 		this.subviews = this.subviews + '\n}\n'
 		this.contraints = this.contraints 
 
-		finalCons = '- (void)setupConstraints {\n'
+		finalCons = '- (void)setupConstraints {'
 		for cst in this.contraints.values():
 			finalCons = finalCons + '\n\t' + cst + '\n\t}];\n'
 		
@@ -411,8 +423,7 @@ if __name__ == '__main__':
 	lexer = Lexer()
 	parser = Parser()
 
-	filepath = "./11.txt"
-	lines = lexer.read_file(filepath)
+	lines = lexer.read_file()
 
 	for line in lines:
 		lexer.run(line)
