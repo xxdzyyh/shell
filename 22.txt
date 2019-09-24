@@ -1,20 +1,7 @@
-{
-  "title": "今日",
-  "selfOrderNum": 0,
-  "selfCommission": 0,
-  "agentOrderNum": 0,
-  "agentCommission": 0
-}我是变量
-我是变量
-我是变量
-我是变量
-我是变量
-我是变量
-我是变量
-我是变量
-我是变量
-我是变量
-我是变量
-我是变量
-我是变量
-我是变量
+typedef NS_ENUM(NSUInteger, BFCustomAssetHQCellType) {
+    BFCustomAssetHQCellTypeName,
+    BFCustomAssetHQCellTypeAmount,
+    BFCustomAssetHQCellTypeRate,
+    BFCustomAssetHQCellTypeTime,
+    BFCustomAssetHQCellCount
+};

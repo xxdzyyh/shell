@@ -1,4 +1,3 @@
-H|-15-self.topView-15-|
-V|-15-self.topView(157)-15-|
-V|self.topBar(45)-|
-H|-self.topBar-|
+leftIconImageView(i:"juhuasuan_left_icon")
+rightIconTopImageView(i:"juhuasuan_right_top_icon")
+rightIconBottomImageView(i:"juhuasuan_right_bottom_icon")
