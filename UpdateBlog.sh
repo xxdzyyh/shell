@@ -1,5 +1,5 @@
-originPath='/Users/xiaoniu/Workspace/book'
-githubIOPath="/Users/xiaoniu/Workspace/xxdzyyh.github.io"
+originPath='/Users/jmf66/WorkSpace/book'
+githubIOPath="/Users/jmf66/Workspace/xxdzyyh.github.io"
 
 
 cd $originPath

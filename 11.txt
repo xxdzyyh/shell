@@ -1,19 +1,9 @@
-{
-  "goodsId": 577183384111,
-  "goodsTitle": "【泡面碗】带盖碗筷饭盒碗单个学生可爱餐具套装PK陶瓷不锈钢",
-  "goodsDesc": "",
-  "goodsPrice": 7.1,
-  "floorPrice": 6.1,
-  "goodsImage": "https://img.alicdn.com/bao/uploaded/i1/4133848552/O1CN01x1tDqd1DItOZoR6Gz_!!194-0-lubanu.jpg",
-  "monthOrder": 26709,
-  "twoHourOrder": 0,
-  "isTmall": 0,
-  "couponMoney": 1,
-  "couponTotal": 0,
-  "couponLimitPrice": 0,
-  "couponSurplus": 0,
-  "couponReceive": 26709,
-  "couponStartTime": "2019-09-14 00:00:00",
-  "couponEndTime": "2019-10-12 23:59:59",
-  "couponReceiveText": "2.67万"
-}
+closeButton()
+fullScreenButton()
+
+1. 业务无关，IM封装一下，隐藏原IMSDK
+2. 业务有关，已知消息类型
+
+原IMSDK --封装-> IMManager {
+	
+} 

@@ -16,7 +16,7 @@ awk 'BEGIN {
 				getter=getter"- ("$4" *)" propertyname "{\n	if (!"property") {\
 		"property" = [["$4" alloc] init];\n\
 		"property".font = kFontSize(14);\
-		"property".textColor = UIColorFromRGB(0x<#color#>);\
+		"property".textColor = XM_UIColorFromHEX(0x123456);\
 	}\n	return "property";\n}\n\n";
 			} else if ($4~/ImageView/) {
 				getter=getter"- ("$4" *)" propertyname "{\n	if (!"property") {\
@@ -26,7 +26,7 @@ awk 'BEGIN {
 			} else if ($4~/Button/) {
 				getter=getter"- ("$4" *)" propertyname "{\n	if (!"property") {\
 		"property" = [["$4" alloc] init];\n\
-		["property" setTitleColor:UIColorFromRGB(0x22222) forState:UIControlStateNormal];\
+		["property" setTitleColor:XM_UIColorFromHEX(0x22222) forState:UIControlStateNormal];\
 		["property" setImage:[UIImage imageNamed:@\"\"] forState:UIControlStateNormal];\
 		["property" setTitle:@\"\" forState:UIControlStateNormal];\
 	}\n	return "property";\n}\n\n";
@@ -35,7 +35,7 @@ awk 'BEGIN {
 		"property" = [["$4" alloc] init];\n\
 		"property".placeholder = @\"\";\
 		"property".font = kFontSize(14);\
-		"property".textColor = UIColorFromRGB(0x123456);\
+		"property".textColor = XM_UIColorFromHEX(0x123456);\
 		"property".keyboardType = UIKeyboardTypeDefault;\
 	}\n	return "property";\n}\n\n";
 			} else {
