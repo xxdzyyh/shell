@@ -1,51 +1,104 @@
 originPath="/Users/$USER/WorkSpace/book"
-githubIOPath="/Users/$USER/Workspace/xxdzyyh.github.io"
+githubIOPath="/Users/$USER/WorkSpace/xxdzyyh.github.io"
 
-# 更新SUMMARY.md
-base=$originPath"/base"
 
-Summary="# Summary"
-Summary="$Summary\n"'* [基础](base.md)'
+#******************* Summary 生成开始 **********************
+# 排除 'node_modules' '_book' 'raw' 三个目录
+# raw 用来存放资源
+# 只有 md 文件会被记录到 Summary 中
 
-for f in ```ls $base```
-do
-	if [ -f "$base/$f" ]
-	then
+echo "1. 开始生成Summary"
+
+contains() {
+	array=$1
+	isContain=0
+	for i in ${array[*]}
+	do
+		if [[ $i == $2 ]]; then
+			isContain=1
+		fi
+	done
+	return $isContain
+}
+
+whiteList=('node_modules' '_book' 'raw')
+whiteFileList=('book.json' 'SUMMARY.md' 'README.md')
+Summary='# Summary'
+
+# 文件夹路径 缩进
+listFile() {
+	SAVEIFS=$IFS
+	IFS=$'\n'
+	local path=$1
+	local insert=$2
+	local f=${path##*/}
+	local fullPath=$originPath"/"$path
+	if [[ -f $fullPath ]]; then
+		contains "${whiteFileList[*]}" $f
+		local isInWhiteList=$?
 		fileName=${f%.*}
-		Summary=$Summary'\n    * ['$fileName'](base/'$f')'
+		fileType=${f##*.}
+		if [[ $fileType == 'md' && $isInWhiteList == 0 ]]; then
+			Summary=$Summary"\n$insert"'- ['$fileName"]("$path")"
+		fi
+	else
+		contains "${whiteList[*]}" $f
+		local isInWhiteList=$?
+		if [[ $isInWhiteList == 0 ]]; then
+			if [[ $path != '' ]]; then
+				Summary=$Summary"\n$insert"'- '$f
+				insert=$insert"\t"
+			fi
+			
+			for f in  `ls $path`
+			do
+				if [[ $path == '' ]]; then
+					listFile $f $insert
+				else
+					listFile $path"/$f" $insert
+				fi
+			done
+		fi
 	fi
-done
+	IFS=$SAVEIFS
+}
 
-ios=$originPath"/iOS"
-
-Summary="$Summary\n"'* [iOS](iOS.md)'
-
-for f in ```ls $ios```
-do
-	if [ -f "$ios/$f" ]
-	then
-
-		fileName=${f%.*}
-		
-		Summary="$Summary\n"'     - ['$fileName'](iOS/'$f')'
-	fi
-done
-
+cd $originPath
+listFile '' ''
 
 echo $Summary > $originPath"/SUMMARY.md"
 
+#******************* Summary 生成完毕 **********************
 
-# cd $originPath
 
-# git add .
-# git commit -m "update"
-# git push origin master
+echo "2. 开始生成 gitbook build"
+gitbook build
+isFailed=$?
 
-# cd $originPath
-# gitbook build
-# cd $githubIOPath
-# rm -r ./*
-# cp -R $originPath"/_book/"* $githubIOPath
-# git add .
-# git commit -m "update"
-# git push origin master
+if [[ $isFailed == 0 ]]; then
+	# gitbook 执行成功
+	echo "3. 开始提交代码"
+	git add .
+	git commit -m "update blog by shell"
+	git push origin master
+
+
+	cd $githubIOPath
+	rm -r ./*
+	cp -R $originPath"/_book/"* $githubIOPath
+	git add .
+	git commit -m "update blog by shell"
+	git push origin master
+else
+	echo "gitbook build 失败，请检查 gitbook build 结果"
+fi
+
+
+
+
+
+
+
+
+
+
