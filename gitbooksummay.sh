@@ -1,5 +1,9 @@
 originPath=$1
 
+if [[ $originPath == '' ]]; then
+	originPath='./'
+fi
+
 contains() {
 	array=$1
 	isContain=0
