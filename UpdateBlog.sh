@@ -43,21 +43,35 @@ listFile() {
 		fi
 	else
 		contains "${whiteList[*]}" $f
-		local isInWhiteList=$?
+		isInWhiteList=$?
+		
 		if [[ $isInWhiteList == 0 ]]; then
+			echo $path
 			if [[ $path != '' ]]; then
-				Summary=$Summary"\n$insert"'- '$f
-				insert=$insert"\t"
-			fi
-			
-			for f in  `ls $path`
-			do
-				if [[ $path == '' ]]; then
-					listFile $f $insert
-				else
-					listFile $path"/$f" $insert
+				if [[ -f $path'/README.md' ]]; then
+					# 包含README.md 才认为是存放文字的文件夹
+					Summary=$Summary"\n$insert"'- ['$f']('$path'/README.md)'
+					insert=$insert"\t"
+
+					for f in  `ls $path`
+					do
+						if [[ $path == '' ]]; then
+							listFile $f $insert
+						else
+							listFile $path"/$f" $insert
+						fi
+					done
 				fi
-			done
+			else
+				for f in  `ls $path`
+				do
+					if [[ $path == '' ]]; then
+						listFile $f $insert
+					else
+						listFile $path"/$f" $insert
+					fi
+				done
+			fi
 		fi
 	fi
 	IFS=$SAVEIFS
